@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: worker
+spec:
+  parallelism: 3
+  template:
+    metadata:
+      name: worker
+      labels:
+        app: worker
+    spec:
+      containers:
+      - env:
+          - name: QUEUE_NAME
+            value: uploads_queue
+          - name: IMG_DIR
+            value: /data/uploads
+        image: quay.io/redhattraining/obj-detector-worker
+        imagePullPolicy: Always
+        name: imgproc
+        volumeMounts:
+          - name: photos
+            mountPath: /data
+      restartPolicy: OnFailure
+      volumes:
+        - name: photos
+          persistentVolumeClaim:
+            claimName: photo-share

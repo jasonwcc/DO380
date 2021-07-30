@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: master
+          image: redis
+          env:
+            - name: MASTER
+              value: "true"
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: ephemeral-backup
+              mountPath: /data
+      volumes:
+        - name: ephemeral-backup
+          emptyDir: {}
+

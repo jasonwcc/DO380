@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: iscsi-pv-05
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  storageClassName: iscsi-blk
+  persistentVolumeReclaimPolicy: Delete
+  accessModes:
+    - ReadWriteOnce
+  iscsi:
+     targetPortal: 172.25.250.253:3260
+     iqn: iqn.2020-05.com.example:utility.lab.example.com
+     lun: 5
+     initiatorName: iqn.2014-06.com.example:workstation
+     fsType: 'ext4'

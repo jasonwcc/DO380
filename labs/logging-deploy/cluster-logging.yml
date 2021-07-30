@@ -1,0 +1,49 @@
+- name: Install Cluster Logging
+  hosts: localhost
+  tasks:
+    - name: Create objects from the manifests
+      k8s:
+        state: "{{ k8s_state | default('present') }}"
+        src: "{{ playbook_dir + '/' + item }}"
+      loop:
+        - logging-operator.yml
+        - elasticsearch-operator.yml
+        - event-router.yml
+
+    - name: Retrieve installed Subscription
+      k8s_info:
+        api_version: operators.coreos.com/v1alpha1
+        kind: Subscription
+        name: "cluster-logging"
+        namespace: "openshift-logging"
+      register: cl_subs
+      retries: 30
+      delay: 3
+      until:
+      - cl_subs.resources | length > 0
+      - cl_subs.resources[0].status is defined
+      - cl_subs.resources[0].status.installedCSV is defined
+      when: k8s_state is not defined or k8s_state == 'present'
+
+    - name: Wait until CSV is ready
+      k8s_info:
+        api_version: operators.coreos.com/v1alpha1
+        kind: ClusterServiceVersion
+        name: "{{ cl_subs.resources[0].status.installedCSV }}"
+        namespace: "openshift-logging"
+      register: cl_csv
+      retries: 30
+      delay: 3
+      until:
+      - cl_csv.resources | length > 0
+      - cl_csv.resources[0].status is defined
+      - cl_csv.resources[0].status.phase is defined
+      - cl_csv.resources[0].status.phase == "Succeeded"
+      when: k8s_state is not defined or k8s_state == 'present'
+
+    - name: Create ClusterLogging instance
+      k8s:
+        state: "{{ k8s_state | default('present') }}"
+        src: "{{ playbook_dir + '/' + item }}"
+      loop:
+        - cl-minimal.yml

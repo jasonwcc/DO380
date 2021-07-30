@@ -1,0 +1,17 @@
+
+iscsi_device_list:
+  - /dev/vdc
+
+iscsi_vg_name: iSCSI_vg
+
+iscsi_pv_sizes:
+ - 1G
+ - 2G
+ - 3G
+ - 4G
+ - 5G
+ - 1G
+ - 1G
+ - 1G
+ - 1G
+

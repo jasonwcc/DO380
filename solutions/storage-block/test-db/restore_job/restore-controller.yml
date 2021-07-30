@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    name: restore-controller
+  name: restore-controller
+spec:
+  replicas: 1
+  selector:
+    name: restore-controller
+  template:
+    metadata:
+      labels:
+        name: restore-controller
+    spec:
+      serviceAccountName: backup
+      restartPolicy: Never
+      containers:
+      - command:
+          - "/bin/sh"
+          - "-c"
+          #- "tail"
+          #- "-f"
+        args:
+          - "source ./restore-controller.sh"
+          #- "/dev/null"
+        workingDir: /mnt/scripts
+        image: registry.redhat.io/openshift4/ose-cli:v4.2.19
+        imagePullPolicy: IfNotPresent
+        name: shell
+        volumeMounts:
+        - mountPath: /mnt/scripts
+          name: scripts
+      volumes:
+      - name: scripts
+        configMap:
+          name: restore-scripts
+

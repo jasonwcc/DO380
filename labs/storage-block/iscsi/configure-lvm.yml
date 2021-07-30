@@ -1,0 +1,40 @@
+---
+- name: Create partitions and logical volumes for iSCSI backstores
+  hosts: iscsi_portal
+  gather_facts: no
+  vars:
+    # A single partition is created on each device (Ex: /dev/vdc --> /dev/vdc1 )
+    iscsi_partition_list: "{{ iscsi_device_list | map('regex_replace', '^(.*)$', '\\1 1') | map('replace', ' ', '') | list }}"
+
+  tasks:
+
+    # If target is installed and running, the block devices show as "busy"
+    - name: Ensure target service is stopped
+      service:
+        name: target
+        state: stopped
+
+    - name: Ensure each device has one partition marked as LVM filesystem
+      parted:
+        device: "{{ item }}"
+        number: 1
+        flags:
+          - lvm
+        state: present
+      loop: "{{ iscsi_device_list }}"
+
+    - name: Ensure '{{ iscsi_vg_name }}' volume group exists
+      lvg:
+        vg: "{{ iscsi_vg_name }}"
+        pvs: "{{ iscsi_partition_list | join(',') }}"
+
+    - name: Ensure a logical volume exists for each PV in volume group
+      lvol:
+        vg: "{{ iscsi_vg_name }}"
+        lv: pv_{{ '%02d' % (ansible_loop.index0) }}
+        size: "{{ item }}"
+      loop: "{{ iscsi_pv_sizes }}"
+      loop_control:
+        extended: yes
+
+

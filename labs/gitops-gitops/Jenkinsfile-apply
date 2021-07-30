@@ -1,0 +1,22 @@
+pipeline {
+  triggers {
+  }
+  options {
+  }
+  agent {
+  }
+  stages {
+    stage ('Validate configuration resources') {
+      steps {
+      }
+    }
+    stage ('Apply resources') {
+      steps {
+      }
+    }
+    stage ('Verify test user') {
+      steps {
+      }
+    }
+  }
+}

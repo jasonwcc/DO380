@@ -1,0 +1,8 @@
+namespace: storage-block
+commonLabels:
+  app: postgresql
+resources:
+- secret.yml
+- statefulset.yml
+- service.yml
+

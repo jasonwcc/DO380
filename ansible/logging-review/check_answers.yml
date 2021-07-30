@@ -1,0 +1,39 @@
+- name: Check answers.yml file
+  hosts: localhost
+  vars:
+    ans_file: /home/student/DO380/labs/logging-review/answers.yml
+  tasks:
+    - name: Parse the SOLN File
+      set_fact:
+        answers: "{{ lookup('file', ans_file) | from_yaml }}"
+      tags:
+        - always
+
+    # secret template requires that the app_number and app_config variables are defined.
+    - name: Check Question 1
+      assert:
+        that:
+          - answers["question1"]["most_total_entries"] == "app1"
+          - answers["question1"]["least_total_entries"] == "app4"
+      tags:
+        - question1
+
+    # secret template requires that the app_number and app_config variables are defined.
+    - name: Check Question 2
+      assert:
+        that:
+          - answers["question2"]["largest_percentage_of_errors"] == "app3"
+          - answers["question2"]["smallest_percentage_of_errors"] == "app4"
+      tags:
+        - question2
+
+    # secret template requires that the app_number and app_config variables are defined.
+    - name: Check Question 3
+      assert:
+        that:
+          - answers["question3"]["app1"] == "steady"
+          - answers["question3"]["app2"] == "decreasing"
+          - answers["question3"]["app3"] == "increasing"
+          - answers["question3"]["app4"] == "decreasing"
+      tags:
+        - question3

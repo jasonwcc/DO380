@@ -1,0 +1,66 @@
+---
+- name: Configure iSCSI backstores, targets, ACLs, LUNs
+  hosts: iscsi_portal
+  gather_facts: no
+  vars:
+    # A single partition is created on each device (Ex: /dev/vdc --> /dev/vdc1 )
+    iscsi_partition_list: "{{ iscsi_device_list | map('regex_replace', '^(.*)$', '\\1 1') | map('replace', ' ', '') | list }}"
+    iscsi_target_iqn: iqn.2020-06.com.example:{{ inventory_hostname }}
+    initiator_iqn_acl: iqn.2020-06.com.example:openshift
+
+  tasks:
+
+    - name: Ensure required iSCSI software packages are present.
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - firewalld
+        - targetcli
+
+    - block:
+        - name: Check if iSCSI target already seems configured
+          command: grep -q "{{ iscsi_target_iqn }}" /etc/target/saveconfig.json
+          changed_when: false
+
+      rescue:
+        - name: Create iSCSI backstores
+          command: targetcli /backstores/block create block{{ ansible_loop.index }} /dev/{{ iscsi_vg_name }}/pv_{{'%02d' % (ansible_loop.index0) }}
+          loop: "{{ iscsi_pv_sizes }}"
+          loop_control:
+            extended: yes
+
+        - name: Create the iSCSI target
+          command: targetcli /iscsi create {{ iscsi_target_iqn }}
+
+        - name: Create the iSCSI ACL
+          command: targetcli /iscsi/{{ iscsi_target_iqn }}/tpg1/acls create {{ initiator_iqn_acl }}
+
+        - name: Create the iSCSI LUNs
+          command: targetcli /iscsi/{{ iscsi_target_iqn }}/tpg1/luns create /backstores/block/block{{ ansible_loop.index }}
+          loop: "{{ iscsi_pv_sizes }}"
+          loop_control:
+            extended: yes
+                                                                                                                                                           86,1          55%
+        - name: Save the iSCSI config
+          command: targetcli saveconfig
+
+    - name: Start and enable services
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop:
+        - firewalld
+        - target
+
+    - name: Allow services through the firewalld
+      firewalld:
+        service: "{{ item }}"
+        state: enabled
+        immediate: true
+        permanent: true
+        zone: external
+      loop:
+        - iscsi-target
+

@@ -1,0 +1,12 @@
+# From the "Configuring Persistent Storage" section
+# in the "Cluster Monitoring" chapter of the
+# Red Hat OpenShift Container Platform 4.5 Monitoring Guide.
+<component>:
+  volumeClaimTemplate:
+    metadata:
+      name: <PVC_name_prefix>
+    spec:
+      storageClassName: <storage_class>
+      resources:
+        requests:
+          storage: <amount_of_storage>

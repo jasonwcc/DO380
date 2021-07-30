@@ -1,0 +1,18 @@
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
+metadata:
+  name: local-disks
+  namespace: storage-local
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+        - key: node-role.kubernetes.io/infra
+          operator: In
+          values:
+          - ''
+  storageClassDevices:
+    - storageClassName: local-blk
+      volumeMode: Filesystem
+      devicePaths:
+        - /dev/vdb

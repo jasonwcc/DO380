@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: backup-debug
+  name: backup-debug
+spec:
+  containers:
+  - command:
+      - 'tail'
+      - '-f'
+    args:
+      - "/dev/null"
+    workingDir: /mnt/scripts
+    image: registry.redhat.io/openshift4/ose-cli:v4.2.19
+    imagePullPolicy: IfNotPresent
+    name: shell
+    volumeMounts:
+    - mountPath: /mnt/scripts
+      name: scripts
+    - mountPath: /mnt/backup
+      name: backup-data
+  volumes:
+  - name: backup-data
+    persistentVolumeClaim:
+      claimName: data-postgresql-backup
+  - name: scripts
+    configMap:
+      name: backup-scripts
+

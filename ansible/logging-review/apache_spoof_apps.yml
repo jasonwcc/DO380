@@ -1,0 +1,35 @@
+- name: Check answers.yml file
+  hosts: localhost
+  vars:
+    resource_state: "{{ k8s_state | default('present') }}"
+    app_project: "{{ project }}"
+    app_list:
+      - app_number: "1"
+        app_replicas: 3
+      - app_number: "2"
+        app_replicas: 4
+      - app_number: "3"
+        app_replicas: 5
+      - app_number: "4"
+        app_replicas: 6
+  tasks:
+    # secret template requires that the app_number and app_config variables are defined.
+    - name: Ensure configuration secret is {{ resource_state }} for each application
+      k8s:
+        state: "{{ resource_state }}"
+        definition: "{{ lookup('template', 'secret.yml.j2', convert_data='yes') }}"
+      loop: "{{ app_list }}"
+      vars:
+        app_number: "{{ item.app_number }}"
+        app_config: "{{ lookup('file', 'config' + item.app_number + '.yml') }}"
+
+    # app template requires tha the app_replicas and app_number variables.
+    # Each app deployment mounts the corresponding app secret as a volume.
+    - name: Ensure each application deployment is {{ resource_state }}
+      k8s:
+        state: "{{ resource_state }}"
+        definition: "{{ lookup('template', 'app.yml.j2', convert_data='yes') }}"
+      loop: "{{ app_list }}"
+      vars:
+        app_number: "{{ item.app_number }}"
+        app_replicas: "{{ item.app_replicas }}"

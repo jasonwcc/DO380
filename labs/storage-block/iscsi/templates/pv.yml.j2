@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: iscsi-pv-{{ '%02d' % (ansible_loop.index0) }}
+spec:
+  capacity:
+    storage: {{ item }}i
+  volumeMode: Filesystem
+  storageClassName: iscsi-blk
+  accessModes:
+    - ReadWriteOnce
+  iscsi:
+     targetPortal: {{ portal_ip }}:3260
+     iqn: {{ iscsi_target_iqn }}
+     lun: {{ ansible_loop.index0}}
+     initiatorName: {{ initiator_iqn_acl }}
+     fsType: 'ext4'
+     readOnly: false

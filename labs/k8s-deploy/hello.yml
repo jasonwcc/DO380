@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello
+  namespace: k8s-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello
+  template:
+    metadata:
+      labels:
+        app: hello
+    spec:
+      containers:
+        - image: quay.io/redhattraining/hello-world-nginx:v1.0
+          name: hello
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello
+  namespace: k8s-deploy
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: hello
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hello
+  namespace: k8s-deploy
+spec:
+  rules:
+    - host: hello.apps.ocp4.example.com
+      http:
+        paths:
+          - backend:
+              serviceName: hello
+              servicePort: 8080
+---
+

@@ -1,0 +1,5 @@
+apiVersion: project.openshift.io/v1
+kind: ProjectRequest
+metadata:
+  name: gitops-review
+description: Project to host a Jenkins instance with cluster admin rights

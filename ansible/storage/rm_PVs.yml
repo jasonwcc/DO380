@@ -1,0 +1,66 @@
+- name: Create objects from the manifest
+  hosts: localhost
+  tasks:
+    - name: Retrieve Local Volume Resources
+      k8s_info:
+        api_version: v1
+        kind: PersistentVolume
+      register: pv_list
+
+    - name: Get PV Name Lists
+      set_fact:
+        pv_names: |-
+          {{ pv_list.resources |
+             map(attribute='metadata') |
+             map(attribute='name') | list }}
+        local_pv_names: |-
+           {{ pv_list.resources |
+               map(attribute='metadata') |
+               map(attribute='name') |
+               select('match', '^local-pv-.*') |
+               list }}
+
+    - name: Get PVs Lookup
+      set_fact:
+        pv_lookup: |-
+          {{ dict(pv_names | zip(pv_list.resources) ) }}
+
+    - name: Get Bound PVs
+      set_fact:
+        bound_pv_names: |-
+          {{ dict( pv_names | zip( pv_list.resources |
+             map(attribute="status") |
+             map(attribute="phase") | list )
+             ) | dict2items |
+             selectattr("value", "equalto", "Bound") |
+             map(attribute="key") | list }}
+
+    - name: Bound Local PV List
+      set_fact:
+        bound_local_pv_names: "{{ local_pv_names | intersect(bound_pv_names) }}"
+
+    - name: Check that all local PVs are Unbound
+      assert:
+        that:
+          - bound_local_pv_names | length == 0
+
+    - name: Try to Delete PVs
+      vars:
+        pvs_to_delete: "{{ local_pv_names }}"
+      block:
+        - name: Delete PVs
+          k8s:
+            kind: PersistentVolume
+            api_version: v1
+            name: "{{ item }}"
+            state: absent
+            wait: true
+            wait_timeout: 10
+          loop: "{{ pvs_to_delete }}"
+      rescue:
+        - name: Fail Gracefully
+          fail:
+            msg: |-
+              Unable to delete the PVs, {{ pvs_to_delete}}.
+              Check that no PVCs are bound to these PVS.
+              If so, remove all PVCs with claims to the PVs.

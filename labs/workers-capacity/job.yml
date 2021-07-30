@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: diskuser
+spec:
+  template:
+    spec:
+      containers:
+      - name: diskuser
+        image: registry.redhat.io/openshift4/ose-cli:v4.5
+        command: ["sh", "-c", "dd if=/dev/zero of=/tmp/big_file bs=1M count=1G || sleep infinity"]
+      nodeSelector:
+        kubernetes.io/hostname: worker02
+      restartPolicy: OnFailure

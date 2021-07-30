@@ -1,0 +1,5 @@
+[iscsi_portal]
+utility.lab.example.com   ansible_ssh_user=lab
+
+[iscsi_initiator]
+workstation

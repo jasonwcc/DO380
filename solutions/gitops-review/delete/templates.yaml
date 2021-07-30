@@ -1,0 +1,13 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: rails-pgsql-persistent
+  namespace: openshift
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: rails-postgresql-example
+  namespace: openshift
+---

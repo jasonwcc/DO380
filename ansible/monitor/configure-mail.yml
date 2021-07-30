@@ -1,0 +1,65 @@
+---
+- name: Configure postfix on utility
+  hosts: utility
+  vars:
+    email_alias: ocp-admins
+    email_user: lab
+    email_user_password: redhat
+  tasks:
+    - name: Install software
+      dnf:
+        name:
+          - postfix
+          - mutt
+          - mailx
+        state: latest
+      tags: always
+
+    - name: Start and enable services
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop:
+        - postfix
+      tags: always
+
+    - name: Accept mail from OCP nodes
+      copy:
+        src: files/main.cf
+        dest: /etc/postfix/
+      notify: restart_postfix
+      tags: start
+
+    - name: Revert main.cf to default configuration
+      copy:
+        src: files/main.cf-orig
+        dest: /etc/postfix/main.cf
+      notify: restart_postfix
+      tags: finish
+
+    - name: Ensure {{ email_user }} exists
+      user:
+        name: "{{ email_user }}"
+        password: "{{ email_user_password | password_hash('sha512') }}"
+        update_password: on_create
+        state: present
+      tags: start
+
+    - name: Create {{ email_alias }} alias
+      lineinfile:
+        path: /etc/aliases
+        regexp: '^{{ email_alias }}'
+        line: "{{ email_alias }}: {{ email_user }}"
+      notify: run_newaliases
+      tags: start
+
+  handlers:
+    - name: restart_postfix
+      service:
+        name: postfix
+        state: restarted
+
+    - name: run_newaliases
+      command: /usr/bin/newaliases
+      changed_when: false

@@ -1,0 +1,3 @@
+/home/student/.ansible.cfg defines a role_path of /usr/local/lib/ansible/roles/.
+Pull existing roles into this directory and both root and student should be able
+to use them.

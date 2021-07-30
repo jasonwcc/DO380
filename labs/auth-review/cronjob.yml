@@ -1,0 +1,33 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: group-sync
+  namespace: auth-review
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: hello
+            image: registry.redhat.io/openshift4/ose-cli:v4.5
+            command:
+            - /bin/sh
+            - -c
+            - oc adm groups sync --sync-config=/etc/config/ldap-group-sync.yaml --confirm
+            volumeMounts:
+              - mountPath: "/etc/config"
+                name: "ldap-sync-volume"
+              - mountPath: "/etc/secrets"
+                name: "ldap-bind-password"
+          volumes:
+            - name: "ldap-sync-volume"
+              configMap:
+                name: CHANGE_ME
+            - name: "ldap-bind-password"
+              secret:
+                secretName: CHANGE_ME
+          serviceAccountName: ldap-group-syncer
+          serviceAccount: ldap-group-syncer

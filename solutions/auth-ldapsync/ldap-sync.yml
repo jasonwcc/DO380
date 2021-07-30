@@ -1,0 +1,24 @@
+kind: LDAPSyncConfig
+apiVersion: v1
+url: ldaps://idm.ocp4.example.com
+bindDN: uid=admin,cn=users,cn=accounts,dc=ocp4,dc=example,dc=com
+bindPassword: Redhat123@!
+insecure: false
+ca: ca.crt
+rfc2307:
+    groupsQuery:
+        baseDN: "cn=groups,cn=accounts,dc=ocp4,dc=example,dc=com"
+        scope: sub
+        derefAliases: never
+        pageSize: 0
+        filter: (objectClass=ipausergroup)
+    groupUIDAttribute: dn
+    groupNameAttributes: [ cn ]
+    groupMembershipAttributes: [ member ]
+    usersQuery:
+        baseDN: "cn=users,cn=accounts,dc=ocp4,dc=example,dc=com"
+        scope: sub
+        derefAliases: never
+        pageSize: 0
+    userUIDAttribute: dn
+    userNameAttributes: [ uid ]

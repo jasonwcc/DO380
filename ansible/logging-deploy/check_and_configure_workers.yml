@@ -1,0 +1,40 @@
+- name: Check for worker04-06 and setup local storage
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Get nodes
+      k8s_info:
+        kind: Node
+        name: "{{ item }}"
+      register: result
+      failed_when: result.resources | length == 0 or (result.resources[0].status.conditions | selectattr('type', 'equalto', 'Ready') | first).status != "True"
+      loop:
+        - worker04
+        - worker05
+        - worker06
+
+    - name: Label worker04-06
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Node
+          metadata:
+            name: "{{ item }}"
+            labels:
+              node-role.kubernetes.io/infra: ''
+      loop:
+        - worker04
+        - worker05
+        - worker06
+
+    - name: Create objects from the manifest
+      k8s:
+        state: "{{ k8s_state | default('present') }}"
+        src: "{{ playbook_dir + '/' + item }}"
+      loop:
+        - local-storage.yml
+        - local-volumes.yml
+      loop_control:
+        pause: 5

@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - restore-controller.yml
+  - rbac.yml
+
+generatorOptions:
+ disableNameSuffixHash: true
+configMapGenerator:
+  - name: restore-scripts
+    files:
+      - scripts/restore-controller.sh
+      - scripts/restore-backup.sh
+      - scripts/restore-job.yml
+

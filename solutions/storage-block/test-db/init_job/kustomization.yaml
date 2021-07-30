@@ -1,0 +1,11 @@
+resources:
+  - init-job.yml
+
+generatorOptions:
+ disableNameSuffixHash: true
+configMapGenerator:
+  - name: db-init
+    files:
+      - users.csv
+      - init-db.sql
+      - load.sh

@@ -1,0 +1,9 @@
+- name: Create objects from the manifest
+  hosts: localhost
+  tasks:
+    - name: Create objects from the manifest
+      k8s:
+        state: "{{ k8s_state | default('present') }}"
+        src: "{{ playbook_dir + '/' + item }}"
+      loop:
+        - hello.yml

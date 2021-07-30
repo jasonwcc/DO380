@@ -1,0 +1,28 @@
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - htpasswd:
+      fileData:
+        name: htpasswd-secret
+    mappingMethod: claim
+    name: htpasswd_provider
+    type: HTPasswd
+  - name: ldapidp
+    mappingMethod: claim
+    type: LDAP
+    ldap:
+      attributes:
+        id:
+        - CHANGE_ME
+        preferredUsername:
+        - CHANGE_ME
+      bindDN: CHANGE_ME
+      bindPassword:
+        name: CHANGE_ME
+      ca:
+        name: CHANGE_ME
+      insecure: false
+      url: CHANGE_ME

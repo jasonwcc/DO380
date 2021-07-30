@@ -1,0 +1,15 @@
+prometheusK8s:
+  retention: <RETENTION-PERIOD>
+  volumeClaimTemplate:
+    spec:
+      storageClassName: <STORAGE-CLASS-NAME>
+      resources:
+        requests:
+          storage: <SIZE>
+alertmanagerMain:
+  volumeClaimTemplate:
+    spec:
+      storageClassName: <STORAGE-CLASS-NAME>
+      resources:
+        requests:
+          storage: <SIZE>

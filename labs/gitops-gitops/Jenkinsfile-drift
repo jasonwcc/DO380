@@ -1,0 +1,21 @@
+pipeline {
+  triggers {
+  }
+  agent {
+    node {
+      label 'nodejs'
+    }
+  }
+  stages {
+    stage ('Check resource drift') {
+      steps {
+      }
+    }
+  }
+  post {
+    failure {
+    }
+    success {
+    }
+  }
+}

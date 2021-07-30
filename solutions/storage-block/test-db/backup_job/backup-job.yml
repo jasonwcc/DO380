@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    name: backup
+  name: backup
+spec:
+  replicas: 1
+  selector:
+    name: backup
+  template:
+    metadata:
+      labels:
+        name: backup
+    spec:
+      serviceAccountName: backup
+      restartPolicy: Never
+      containers:
+      - command:
+          - '/bin/sh'
+          - '-c'
+        args:
+          - "source ./backup.sh"
+        workingDir: /mnt/scripts
+        image: registry.redhat.io/openshift4/ose-cli:v4.2.19
+        imagePullPolicy: IfNotPresent
+        name: shell
+        volumeMounts:
+        - mountPath: /mnt/scripts
+          name: scripts
+        - mountPath: /mnt/backup
+          name: backup-data
+      volumes:
+      - name: backup-data
+        persistentVolumeClaim:
+          claimName: data-postgresql-backup
+      - name: scripts
+        configMap:
+          name: backup-scripts
+

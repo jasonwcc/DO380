@@ -1,0 +1,195 @@
+---
+- hosts: localhost
+  tasks:
+  - name: create ldap-secret
+    k8s:
+      definition:
+        data:
+          bindPassword: "{{ 'Redhat123@!' | b64encode }}"
+        kind: Secret
+        metadata:
+          name: ldap-secret
+          namespace: openshift-config
+        type: Opaque
+  - name: get IdM Cert
+    uri:
+      url: http://idm.ocp4.example.com/ipa/config/ca.crt
+      return_content: yes
+    register: cacrt
+  - name: create ca-config-map
+    k8s:
+      definition:
+        data:
+          ca.crt: "{{ cacrt.content }}"
+        kind: ConfigMap
+        metadata:
+          name: ca-config-map
+          namespace: openshift-config
+  - name: create ldapidp
+    k8s:
+      definition:
+        kind: OAuth
+        metadata:
+          name: cluster
+        spec:
+          identityProviders:
+          - htpasswd:
+              fileData:
+                name: htpasswd-secret
+            mappingMethod: claim
+            name: htpasswd_provider
+            type: HTPasswd
+          - name: ldapidp
+            mappingMethod: claim
+            type: LDAP
+            ldap:
+              attributes:
+                id:
+                - dn
+                email:
+                - mail
+                name:
+                - cn
+                preferredUsername:
+                - uid
+              bindDN: "uid=admin,cn=users,cn=accounts,dc=ocp4,dc=example,dc=com"
+              bindPassword:
+                name: ldap-secret
+              ca:
+                name: ca-config-map
+              insecure: false
+              url: "ldaps://idm.ocp4.example.com/cn=users,cn=accounts,dc=ocp4,dc=example,dc=com?uid"
+  - name: create the project
+    k8s:
+      api_version: project.openshift.io/v1
+      kind: Project
+      name: "auth-review"
+      state: present
+      namespace: ""
+  - name: create ldap-group-syncer ClusterRole
+    k8s:
+      definition:
+        kind: "ClusterRole"
+        apiVersion: rbac.authorization.k8s.io/v1
+        metadata:
+          name: ldap-group-syncer
+        rules:
+          - apiGroups:
+              - ""
+              - "user.openshift.io"
+            resources:
+              - "groups"
+            verbs:
+              - "get"
+              - "list"
+              - "create"
+              - "update"
+  - name: create service account ldap-group-syncer
+    k8s:
+      definition:
+        kind: "ServiceAccount"
+        metadata:
+          name: ldap-group-syncer
+          namespace: auth-review
+  - name: bind role ldap-group-syncer to user ldap-group-syncer
+    k8s:
+      definition:
+        kind: "ClusterRoleBinding"
+        apiVersion: rbac.authorization.k8s.io/v1
+        groupNames: null
+        metadata:
+          name: "ldap-group-syncer"
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: "ldap-group-syncer"
+        subjects:
+        - kind: "ServiceAccount"
+          name: ldap-group-syncer
+          namespace: auth-review
+        userNames:
+        - "system:serviceaccount:default:ldap-group-syncer"
+  - name: create ldap-secret for group sync
+    k8s:
+      definition:
+        data:
+          bindPassword: "{{ 'Redhat123@!' | b64encode }}"
+        kind: Secret
+        metadata:
+          name: ldap-secret
+          namespace: auth-review
+        type: Opaque
+  - name: create ldap-config for group sync
+    k8s:
+      definition:
+        data:
+          ca.crt: "{{ cacrt.content }}"
+          ldap-group-sync.yaml: |
+            kind: LDAPSyncConfig
+            apiVersion: v1
+            url: ldaps://idm.ocp4.example.com
+            bindDN: uid=admin,cn=users,cn=accounts,dc=ocp4,dc=example,dc=com
+            bindPassword:
+              file: /etc/secrets/bindPassword
+            insecure: false
+            ca: /etc/config/ca.crt
+            rfc2307:
+                groupsQuery:
+                    baseDN: "cn=groups,cn=accounts,dc=ocp4,dc=example,dc=com"
+                    scope: sub
+                    derefAliases: never
+                    pageSize: 0
+                    filter: (objectClass=ipausergroup)
+                groupUIDAttribute: dn
+                groupNameAttributes: [ cn ]
+                groupMembershipAttributes: [ member ]
+                usersQuery:
+                    baseDN: "cn=users,cn=accounts,dc=ocp4,dc=example,dc=com"
+                    scope: sub
+                    derefAliases: never
+                    pageSize: 0
+                userUIDAttribute: dn
+                userNameAttributes: [ uid ]
+        kind: ConfigMap
+        metadata:
+          name: ldap-config
+          namespace: auth-review
+  - name: create cronjob
+    k8s:
+      definition:
+        apiVersion: batch/v1beta1
+        kind: CronJob
+        metadata:
+          name: group-sync
+          namespace: auth-review
+        spec:
+          schedule: "*/1 * * * *"
+          jobTemplate:
+            spec:
+              template:
+                spec:
+                  restartPolicy: Never
+                  containers:
+                  - name: hello
+                    image: registry.redhat.io/openshift4/ose-cli:v4.5
+                    command:
+                    - /bin/sh
+                    - -c
+                    - oc adm groups sync --sync-config=/etc/config/ldap-group-sync.yaml --confirm
+                    volumeMounts:
+                      - mountPath: "/etc/config"
+                        name: "ldap-sync-volume"
+                      - mountPath: "/etc/secrets"
+                        name: "ldap-bind-password"
+                  volumes:
+                    - name: "ldap-sync-volume"
+                      configMap:
+                        name: ldap-config
+                    - name: "ldap-bind-password"
+                      secret:
+                        secretName: ldap-secret
+                  serviceAccountName: ldap-group-syncer
+                  serviceAccount: ldap-group-syncer
+  - name: make openshift-admins cluster admins
+    command:
+      cmd: oc adm policy add-cluster-role-to-group cluster-admin openshift-admins

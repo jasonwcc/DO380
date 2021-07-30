@@ -1,0 +1,16 @@
+- name: Check for worker04-06
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Get nodes
+      k8s_info:
+        kind: Node
+        name: "{{ item }}"
+      register: result
+      failed_when: result.resources | length == 0 or (result.resources[0].status.conditions | selectattr('type', 'equalto', 'Ready') | first).status != "True"
+      loop:
+        - worker04
+        - worker05
+        - worker06
+

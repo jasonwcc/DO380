@@ -1,0 +1,36 @@
+# This playbook assumes you are already logged in to OpenShift as a cluster administrator
+
+- name: Deploy Jenkins for GitOps
+  hosts: localhost
+  gather_facts: no
+  tasks:
+
+  - name: Create project for Jenkins
+    k8s:
+      state: present
+      src: "{{ playbook_dir + '/resources/project.yaml' }}"
+
+  - name: Proccess the Jenkins standard template
+    shell: "oc process FIX-ME -n openshift -o yaml"
+    register: template_resources
+
+  - name: Deploy Jenkins using resources from the standard template
+    k8s:
+      state: present
+      namespace: gitops-review
+      resource_definition: "{{ template_resources.stdout }}"
+
+  - name: Grant cluster administrator privileges to Jenkins
+    k8s:
+      state: present
+      src: "{{ playbook_dir + '/resources/role-binding.yaml' }}"
+
+  - name: Wait until Jenkins is available
+    k8s_info:
+      kind: DeploymentConfig
+      name: jenkins
+      namespace: gitops-review
+    register: jenkins_dc
+    until: jenkins_dc.resources[0].status.availableReplicas > 0
+    retries: 60
+    delay: 5

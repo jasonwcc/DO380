@@ -1,0 +1,8 @@
+- name: Demonstrate k8s modules
+  hosts: localhost
+  become: false
+  vars:
+    namespace: automation-ansible
+  module_defaults:
+    group/k8s:
+      namespace: "{{ namespace }}"

@@ -1,0 +1,50 @@
+- name: Demonstrate k8s modules
+  hosts: localhost
+  become: false
+  vars:
+    namespace: automation-ansible
+  module_defaults:
+    group/k8s:
+      namespace: "{{ namespace }}"
+  tasks:
+    - name: Create the project
+      k8s:
+        api_version: project.openshift.io/v1
+        kind: Project
+        name: "{{ namespace }}"
+        state: present
+        namespace: ""
+
+    - name: Create objects from the manifest
+      k8s:
+        state: present
+        src: "{{ playbook_dir + '/hello.yml' }}"
+
+    - name: Get a info about all of the pods in the namespace
+      k8s_info:
+        kind: Pod
+
+    - name: Scale deployment up
+      k8s_scale:
+        kind: Deployment
+        name: hello
+        replicas: 3
+
+    - name: Get hostname of the route
+      k8s_info:
+        kind: Route
+        name: hello
+      register: route
+
+    - name: Test access to the app
+      uri:
+        url: "http://{{ route.resources[0].spec.host }}"
+        return_content: yes
+      register: response
+      until: response.status == 200
+      retries: 10
+      delay: 5
+
+    - name: Display response of the application
+      debug:
+        var: response.content

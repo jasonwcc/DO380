@@ -1,0 +1,39 @@
+---
+- name: Setup IdM
+  hosts: localhost
+  become: false
+  module_defaults:
+    ipa_user:
+      ipa_host: idm.ocp4.example.com
+      ipa_user: admin
+      ipa_pass: Redhat123@!
+      validate_certs: no
+    ipa_group:
+      ipa_host: idm.ocp4.example.com
+      ipa_user: admin
+      ipa_pass: Redhat123@!
+      validate_certs: no
+
+  tasks:
+    - name: Create IdM users
+      ipa_user:
+        uid: "{{ item }}"
+        state: "{{ idm_state | default('present') }}"
+        givenname: "{{ item }}"
+        sn: "{{ item }}"
+        password: "{{ item }}"
+      loop:
+        - openshift-user
+        - openshift-admin
+        - openshift-user-in-project-a
+        - non-openshift-user
+
+    - name: Create IdM groups
+      ipa_group:
+        name: "{{ item.name }}"
+        user: "{{ item.user }}"
+        state: "{{ idm_state | default('present') }}"
+      loop:
+        - { name: 'openshift-admins', user: [ 'openshift-admin'] }
+        - { name: 'openshift-project-a', user: [ 'openshift-user-in-project-a'] }
+        - { name: 'openshift-users', user: [ 'openshift-user'] }

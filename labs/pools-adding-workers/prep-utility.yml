@@ -1,0 +1,66 @@
+---
+- name: Add new workers
+  hosts: utility
+  vars:
+    pxe_path: "/var/lib/tftpboot/pxelinux.cfg/"
+  tasks:
+    - name: Find OpenShift version directory
+      find:
+        paths: "/var/www/html/openshift4"
+        file_type: directory
+        patterns: "4.*"
+      register: ocp_dir
+
+    - name: Set worker.ign fact
+      set_fact:
+        worker_ign: "{{ ocp_dir.files[0].path }}/ignitions/worker.ign"
+
+    - name: Fetch the api-int certificate
+      get_certificate:
+        host: api-int.ocp4.example.com
+        port: 22623
+      register: updated_cert
+
+    - name: Create updated Ignition content
+      command: >
+        jq ".ignition.security.tls.certificateAuthorities[0].source = \"data:text/plain;charset=utf-8;base64,{{ updated_cert.cert | b64encode }}\"" "{{ worker_ign }}"
+      register: updated_ign
+
+    - name: Write worker Ignition file
+      become: yes
+      copy:
+        backup: yes
+        content: "{{ updated_ign.stdout }}"
+        dest: "{{ worker_ign }}"
+
+    - name: Get list of PXE files with -NOOP suffix
+      find:
+        paths: "{{ pxe_path }}"
+        patterns: "*-NOOP"
+      register: noops
+
+    - name: Copy -NOOP PXE files to reachable paths
+      become: yes
+      copy:
+        remote_src: yes
+        src: "{{ item.path }}"
+        dest: "{{ item.path | regex_replace('-NOOP$') }}"
+      loop: "{{ noops.files }}"
+
+    - name: Restart tftp socket
+      become: yes
+      systemd:
+        name: tftp.socket
+        state: restarted
+
+    - name: Uncomment workers in HAProxy config
+      replace:
+        backup: yes
+        path: "/etc/haproxy/haproxy.cfg"
+        regexp: '^\s+#\s+ server worker'
+        replace: "         server worker"
+
+    - name: Reload HAProxy config
+      systemd:
+        name: haproxy
+        state: reloaded

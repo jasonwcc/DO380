@@ -1,0 +1,12 @@
+- name: Install iSCSI packages
+  import_playbook: install-iscsi.yml
+
+- name: Configure a logical volume for each PV
+  import_playbook: configure-lvm.yml
+
+- name: Configure each logical volume as an iSCSI LUN
+  import_playbook: configure-iscsi.yml
+
+- name: Create a PV resource file for each LUN
+  import_playbook: render-templates.yml
+

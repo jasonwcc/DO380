@@ -1,0 +1,16 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: example-alert
+  namespace: openshift-monitoring
+spec:
+  groups:
+    - name: example
+      rules:
+      - alert: TestAlert
+        expr: 1
+        labels:
+          severity: warning
+        annotations:
+          message: Test alert for DO380.

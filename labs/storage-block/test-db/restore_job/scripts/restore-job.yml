@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    name: restore-db
+  name: restore-db
+spec:
+  replicas: 1
+  selector:
+    name: restore-db
+  template:
+    metadata:
+      labels:
+        name: restore-db
+    spec:
+      serviceAccountName: backup
+      restartPolicy: Never
+      containers:
+      - command:
+          - "/bin/sh"
+          - "-c"
+        args:
+          - "source ./restore-backup.sh"
+        workingDir: /mnt/scripts
+        image: registry.redhat.io/openshift4/ose-cli:v4.2.19
+        imagePullPolicy: IfNotPresent
+        name: shell
+        volumeMounts:
+        - mountPath: /mnt/scripts
+          name: scripts
+        - mountPath: /mnt/backup
+          name: backup-volume
+        - mountPath: /mnt/data
+          name: data-volume
+      volumes:
+      - name: scripts
+        configMap:
+          name: restore-scripts
+      - name: backup-volume
+        persistentVolumeClaim:
+          claimName: data-postgresql-backup
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: data-postgresql-0
+

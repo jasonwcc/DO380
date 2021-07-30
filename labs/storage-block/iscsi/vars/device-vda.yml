@@ -1,0 +1,6 @@
+device: /dev/vda
+device_short: vda
+partition_pv: /dev/vda1
+partition_pv_short: vda1
+partition: /dev/vda2
+partition_short: vda2

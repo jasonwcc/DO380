@@ -1,0 +1,80 @@
+# replicas: 6
+maxEntriesPerMinute: 20.
+minEntriesPerMinute: 0.0
+initialEntriesPerMinute: 12.
+entriesPerMinutePerMinute: -0.333333
+maxEmitPeriodInMinutes: 20.0
+
+
+paths:
+  - "GET /admin/"
+  - "GET /admin/"
+  - "GET /admin/"
+  - "POST /admin/index"
+  - "POST /admin/index"
+  - "GET /favicon.ico"
+  - "GET /static/css"
+  - "GET /static/css"
+  - "GET /static/js"
+  - "GET /about/company"
+  - "GET /images/web/2020/banner.png"
+  - "GET /images/web/portfolio.png"
+  - "GET /images/web/picnic.png"
+  - "GET /images/web/ketchup.png"
+  - "GET /reset.css"
+  - "GET /reset.css"
+  - "GET /reset.css"
+  - "POST /cart"
+  - "POST /cart"
+  - "POST /cart"
+  - "POST /cart"
+  - "POST /cart"
+  - "PUT /cart"
+  - "PUT /cart"
+  - "GET /products?id=42"
+  - "GET /products?id=371"
+  - "GET /products?id=58"
+  - "GET /products?id=67"
+  - "GET /products?id=7"
+  - "GET /products?id=871"
+  - "GET /products?id=214"
+  - "GET /products?id=123"
+  - "GET /products?id=6"
+  - "GET /products?id=8"
+  - "GET /products?id=12"
+  - "GET /products?id=14"
+  - "GET /products?id=112"
+  - "GET /products?id=114"
+  - "GET /products?id=23"
+  - "GET /products?id=25"
+  - "GET /products?id=26"
+
+agents:
+  - "Mozilla/5.0 (Windows NT 6.0; rv:34.0) Gecko/20100101 Firefox/34.0"
+  - "Mozilla/5.0 (Windows NT 6.0; rv:34.0)"
+  - "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.71"
+  - "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.42 (KHTML, like Gecko) Chrome/46.0.2490.72"
+  - "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"
+  - "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:27.0) Gecko/20100101 Firefox/27.0"
+  - "Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/32.0"
+  - "Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/33.0"
+
+# 1 out of 17 is an error.
+statusCodes:
+  - 200
+  - 200
+  - 200
+  - 200
+  - 200
+  - 200
+  - 200
+  - 200
+  - 200
+  - 200
+  - 200
+  - 401
+  - 403
+  - 404
+  - 404
+  - 404
+  - 500

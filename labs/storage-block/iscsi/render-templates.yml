@@ -1,0 +1,45 @@
+# Gather facts to retrive the IP of the portal
+- name: Gather Facts
+  hosts: iscsi_portal
+  gather_facts: no
+  tasks:
+    - name: Only get network facts
+      setup:
+        gather_subset:
+          - '!all'
+          - '!any'
+          - 'network'
+
+- name: Render PV templates
+  hosts: workstation
+  gather_facts: no
+  become: no
+  vars:
+    pv_dir: "{{ playbook_dir }}/../PVs"
+    portal_ip: "{{ hostvars[groups['iscsi_portal'][0]]['ansible_default_ipv4'].address }}"
+    iscsi_partition_list: "{{ iscsi_device_list | map('regex_replace', '^(.*)$', '\\1 1') | map('replace', ' ', '') | list }}"
+    iscsi_target_iqn: iqn.2020-06.com.example:{{ groups['iscsi_portal'][0] }}
+    initiator_iqn_acl: iqn.2020-06.com.example:openshift
+
+  tasks:
+    - name: Create resource directory
+      file:
+        path: "{{ pv_dir }}"
+        state: directory
+
+    - name: Render PV YAML files
+      template:
+        src: pv.yml.j2
+        dest: "{{ pv_dir }}/iscsi_pv_{{'%02d' % (ansible_loop.index0) }}.yml"
+      loop: "{{ iscsi_pv_sizes }}"
+      loop_control:
+        extended: yes
+
+    - name: Render kustomization.yml
+      template:
+        src: "{{ item }}.j2"
+        dest: "{{ pv_dir }}/{{ item }}"
+      loop:
+        - kustomization.yml
+        - storageclass.yml
+

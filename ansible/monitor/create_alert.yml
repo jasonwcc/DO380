@@ -1,0 +1,9 @@
+- name: Create Test Alert
+  hosts: localhost
+  tasks:
+    - name: Create objects from the manifest
+      k8s:
+        state: "{{ k8s_state | default('present') }}"
+        src: "{{ playbook_dir + '/' + item }}"
+      loop:
+        - test-alert-defn.yml

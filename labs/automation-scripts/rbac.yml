@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: CHANGE_ME
+  namespace: automation-scripts
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: CHANGE_ME
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: CHANGE_ME
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: CHANGE_ME
+subjects:
+- kind: ServiceAccount
+  name: CHANGE_ME
+  namespace: automation-scripts
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: CHANGE_ME

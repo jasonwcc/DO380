@@ -1,0 +1,89 @@
+= Database Backup Scenario
+
+In this demo, you create a backup of database that uses a RWO persistent volume.
+
+NOTE: At the moment, this demo only works in AWS, as that is the only environment that has true RWO persistent volumes.
+
+== Steps
+
+. This demo uses files in the `research/storage/local/resources/test-db` subdirectory of the DO380 repository.
++
+....
+[student@workstation ~]$ cd /path/to/repo/for/DO380
+[student@workstation DO380]$ cd research/storage/local/resources/test-db
+[student@workstation test-db]$
+....
+
+. Create the `database-test` project.
++
+....
+[student@workstation test-db]$ oc new-project database-test
+....
+
+. Use the resources in the `postgres` subdirectory to create the database application.
++
+....
+[student@workstation test-db]$ oc apply -k postgres/
+....
+
+. The `init_job` subdirectory contains resource definitions for a job that initializes the database.
+The initialization job connects to the `sampledb` database, creates a user table, and adds two rows to the user table.
++
+Apply the `init_job` resources to execute the initialization job.
++
+....
+[student@workstation test-db]$ oc apply -k init_job/
+....
+
+. The `backup_job` subdirectory contains resource definitions for a job to backup the database.
++
+....
+[student@workstation test-db]$ oc apply -k back_job/
+....
++
+The backup job uses a service account to execute remote commands on the postgresql pod.
+The backup job executes the following steps:
++
+[lowerroman]
+.. Connect to the postgresql pod and execute the `pg_start_backup` postgresql command.
+.. Connect to the postgresql pod and stream a tar archive of the `/var/lib/pgsql/data` directory to STDOUT.
+The backup job writes the STDOUT content to the `/mnt/backup` directory, which is a persistent volume mount point.
+   Then
+.. Connect to the postgresql pod and execute the `pg_stop_backup` postgresql command.
+
+. Use the `backup_job/debug-pod.yml` resource definition to create a pod that mounts the backup persistent volume, and verify the backup archive exists.
++
+....
+[student@workstation test-db]$ oc create -f backup_job/debug-pod.yml
+[student@workstation test-db]$ oc rsh backup-debug ls /mnt/backup
+[student@workstation test-db]$ oc delete pod backup-debug
+....
+
+
+. Add new data to the database.
+  This new data enables you to verify the restoration of the database from the backup archive in a later step.
++
+....
+[student@workstation test-db]$ cat add_data.sql | oc rsh postgresql-0 psql
+[student@workstation test-db]$ cat get_all.sql | oc rsh postgresql-0 psql
+....
+
+. Use the resources in the `restore_job` subdirectory to restore the database from the backup archive.
++
+....
+[student@workstation test-db]$ oc apply -k restore_job
+....
++
+The job creates a controller pod that:
+[lowerroman]
+.. scales down postgres to zero pods, which a different pod to mount the postgres persistent volume.
+.. creates a restore pod, which mounts both the backup and postgres persistent volume claims.  The restore pod extracts the backup archive to the postgres data directory.
+.. deletes the restore pod.
+.. scales the postgres service back to one pod.
+
+. Verify the restore is successful.  If the data restoration is successful, then only the initial data is present in the database.
++
+....
+[student@workstation test-db]$ cat get_all.sql | oc rsh postgresql-0 psql
+....
+

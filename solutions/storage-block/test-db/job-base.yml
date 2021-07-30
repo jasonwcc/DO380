@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: database-init
+spec:
+  template:
+    spec:
+      containers:
+      - command:
+          - "/bin/sh"
+        args:
+          - "-c"
+          - "source /mnt/init/load.sh"
+        capabilities: {}
+        env:
+        - name: POSTGRESQL_USER
+          valueFrom:
+            secretKeyRef:
+              key: database-user
+              name: postgresql
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: postgresql
+        - name: POSTGRESQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database-name
+              name: postgresql
+        image: 'image-registry.openshift-image-registry.svc:5000/openshift/postgresql:10'
+        imagePullPolicy: IfNotPresent
+        name: postgresql
+        ports:
+        - containerPort: 5432
+          protocol: TCP
+        resources:
+          limits:
+            memory: 512Mi
+        securityContext:
+          capabilities: {}
+          privileged: false
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+          - name: db-init-volume
+            mountPath: /mnt/init
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      volumes:
+        - name: db-init-volume
+          configMap:
+            name: db-init

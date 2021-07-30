@@ -1,0 +1,22 @@
+# Questions
+# 1. Which application has the most log entries?  the least?
+# 2. Which application deployment has the highest percentage of server errors?
+#    the least?
+
+# 3. For each application, is the volume of log entries per minute:
+#    - increasing,
+#    - decreasing,
+#    - steady?
+
+question1:
+  most_total_entries: app1|app2|app3|app4
+  least_total_entries: app1|app2|app3|app4
+question2:
+  largest_percentage_of_errors: app1|app2|app3|app4
+  smallest_percentage_of_errors: app1|app2|app3|app4
+question3:
+  app1: increasing|decreasing|steady
+  app2: increasing|decreasing|steady
+  app3: increasing|decreasing|steady
+  app4: increasing|decreasing|steady
+

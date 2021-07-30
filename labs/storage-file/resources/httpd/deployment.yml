@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpd
+  template:
+    metadata:
+      labels:
+        app: httpd
+    spec:
+      containers:
+      - image: registry.access.redhat.com/rhscl/httpd-24-rhel7
+        imagePullPolicy: Always
+        name: httpd
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 8443
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/www/html/data
+          name: uploads
+      restartPolicy: Always
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: photo-share

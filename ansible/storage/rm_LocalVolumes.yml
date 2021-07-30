@@ -1,0 +1,66 @@
+- name: Delete Resources
+  hosts: localhost
+  vars:
+    this_api: local.storage.openshift.io/v1
+    this_kind: LocalVolume
+    this_namespace: storage-local
+    addition_error_msg: |-
+      Check that no LocalVolume resources exists.
+  tasks:
+    - name: Retrieve {{ this_kind }} Resources
+      k8s_info:
+        api_version: "{{ this_api }}"
+        kind: "{{ this_kind }}"
+        namespace: "{{ this_namespace }}"
+      register: resource_list
+
+    - name: Get {{ this_kind }} Name List
+      set_fact:
+        resource_names: |-
+          {{ resource_list.resources |
+             map(attribute='metadata') |
+             map(attribute='name') | list }}
+
+    - name: "Try to Delete {{ this_kind }} Resources"
+      vars:
+        to_delete: "{{ resource_names }}"
+      block:
+        - name: Delete {{ this_kind }}
+          k8s:
+            kind: "{{ this_kind }}"
+            api_version: "{{ this_api }}"
+            name: "{{ item }}"
+            namespace: "{{ this_namespace }}"
+            state: absent
+            wait: yes
+            wait_timeout: 10
+          loop: "{{ to_delete }}"
+      rescue:
+        - name: See if removing finalizers helps...
+          block:
+            - name: Try patching {{ this_kind }} resources [remove finalizers]
+              k8s:
+                kind: "{{ this_kind }}"
+                api_version: "{{ this_api }}"
+                name: "{{ item }}"
+                namespace: "{{ this_namespace }}"
+                resource_definition:
+                  metadata:
+                    finalizers: []
+              loop: "{{ to_delete }}"
+            - name: Delete {{ this_kind }}
+              k8s:
+                kind: "{{ this_kind }}"
+                api_version: "{{ this_api }}"
+                name: "{{ item }}"
+                namespace: "{{ this_namespace }}"
+                state: absent
+                wait: yes
+                wait_timeout: 10
+              loop: "{{ to_delete }}"
+          rescue:
+            - name: Fail Gracefully
+              fail:
+                msg: |-
+                  Unable to delete the {{ this_kind}}, {{ to_delete }}.
+                  {{ additional_error_msg }}
