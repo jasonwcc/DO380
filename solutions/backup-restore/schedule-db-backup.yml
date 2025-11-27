@@ -1,0 +1,54 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: db-backup
+  namespace: openshift-adp
+spec:
+  schedule: "0 7 * * 0"
+  paused: true
+  template:
+    ttl: 360h0m0s
+    includedNamespaces:
+    - database
+    orLabelSelectors:
+    - matchLabels:
+        app: mariadb
+    - matchLabels:
+        kubernetes.io/metadata.name: database
+    includedResources:
+    - namespace
+    - deployments
+    - configmaps
+    - secrets
+    - pvc
+    - pv
+    - services
+    - pods
+    hooks:
+      resources:
+      - name: mariadb-readonly
+        pre:
+        - exec:
+            container: mariadb
+            command:
+            - /bin/bash
+            - -c
+            - |
+              mariadb -u "root" \
+                -p"${MARIADB_ROOT_PASSWORD}" \
+                ${MARIADB_DATABASE} -e \
+                "set global read_only=1; \
+                BACKUP STAGE START; \
+                BACKUP STAGE BLOCK_COMMIT;";
+              sync;
+        post:
+        - exec:
+            container: mariadb
+            command:
+            - /bin/bash
+            - -c
+            - |
+              mariadb -u "root" \
+                -p"${MARIADB_ROOT_PASSWORD}" \
+                ${MARIADB_DATABASE} -e \
+                "set global read_only=0;";

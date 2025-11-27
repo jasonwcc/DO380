@@ -1,0 +1,21 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: db-manual
+  namespace: openshift-adp
+spec:
+  includedNamespaces:
+  - database
+  orLabelSelectors:
+  - matchLabels:
+      app: mariadb
+  - matchLabels:
+      kubernetes.io/metadata.name: database
+  includedResources:
+  - namespace
+  - deployments
+  - configmaps
+  - secrets
+  - pvc
+  - pv
+  - services
