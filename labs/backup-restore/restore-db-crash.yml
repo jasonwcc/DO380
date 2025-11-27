@@ -1,0 +1,10 @@
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: CHANGEME
+  namespace: CHANGEME
+spec:
+  backupName: CHANGEME
+  restorePVs: true
+  namespaceMapping:
+    CHANGEME

@@ -1,0 +1,23 @@
+kind: LDAPSyncConfig
+apiVersion: v1
+url: ldaps://rhds.ocp4.example.com:636
+bindDN: CHANGE_ME
+bindPassword:
+  file: CHANGE_ME
+ca: CHANGE_ME
+augmentedActiveDirectory:
+    groupsQuery:
+        baseDN: "ou=people,dc=example,dc=com"
+        scope: sub
+        derefAliases: never
+        pageSize: 0
+    groupUIDAttribute: dn
+    groupNameAttributes: [ cn ]
+    usersQuery:
+        baseDN: "ou=people,dc=example,dc=com"
+        scope: sub
+        derefAliases: never
+        filter: (objectclass=account)
+        pageSize: 0
+    userNameAttributes: [ uid ]
+    groupMembershipAttributes: [ memberOf ]

@@ -1,0 +1,39 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: db-quiesce
+  namespace: openshift-adp
+spec:
+  includedNamespaces:
+  - database
+  hooks:
+    resources:
+    - name: maridb-readonly
+      pre:
+      - exec:
+          container: mariadb
+          command:
+          - /bin/bash
+          - -c
+          - |
+            mysql -u "root" \
+              -p"${MARIADB_ROOT_PASSWORD}" \
+              ${MARIADB_DATABASE} -e \
+                "insert into events(event) \
+                values ('app-consistent backup initiated');\
+                set global read_only=1; \
+                BACKUP STAGE START; \
+                BACKUP STAGE BLOCK_COMMIT;" ;
+            sync;
+      post:
+      - exec:
+          container: mariadb
+          command:
+          - /bin/bash
+          - -c
+          - mysql -u "root" \
+              -p"${MARIADB_ROOT_PASSWORD}" \
+              ${MARIADB_DATABASE} -e \
+              "set global read_only=0; \
+              insert into events(event) \
+              values ('app-consistent backup completed');"

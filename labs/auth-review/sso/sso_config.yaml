@@ -1,0 +1,19 @@
+  - openID:
+      claims:
+        email:
+          - email
+        name:
+          - name
+        preferredUsername:
+          - preferred_username
+        groups:
+          - groups
+      clientID: CHANGE_ME
+      clientSecret:
+        name: CHANGE_ME
+      extraScopes: []
+      issuer: >-
+        CHANGE_ME
+    mappingMethod: claim
+    name: CHANGE_ME
+    type: OpenID

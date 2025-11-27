@@ -1,0 +1,19 @@
+apiVersion: tuned.openshift.io/v1
+kind: Tuned
+metadata:
+  name: CHANGE_ME
+  namespace: openshift-cluster-node-tuning-operator
+spec:
+  profile:
+  - name: CHANGE_ME
+    data: |
+      [main]
+      summary=Worker optimization disabling transparent_hugepages.
+      [vm]
+      transparent_hugepage=CHANGE_ME
+
+  recommend:
+  - match:
+    - label: CHANGE_ME
+    priority: 30
+    profile: CHANGE_ME

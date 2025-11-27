@@ -1,0 +1,5 @@
+access_key = CHANGE_ME
+secret_key = CHANGE_ME
+host_base = s3-openshift-storage.apps.ocp4.example.com
+host_bucket = s3-openshift-storage.apps.ocp4.example.com/%(bucket)s
+signature_v2 = True

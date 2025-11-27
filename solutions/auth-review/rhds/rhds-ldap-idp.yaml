@@ -1,0 +1,27 @@
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - ldap:
+      attributes:
+        id:
+          - dn
+        email:
+          - mail
+        name:
+          - cn
+        preferredUsername:
+          - uid
+      bindDN: 'cn=Directory Manager'
+      bindPassword:
+        name: rhds-ldap-secret
+      ca:
+        name: rhds-ca-config-map
+      insecure: false
+      url: >-
+        ldaps://rhds.ocp4.example.com/dc=example,dc=com?uid
+    mappingMethod: claim
+    name: Red Hat Directory Server
+    type: LDAP

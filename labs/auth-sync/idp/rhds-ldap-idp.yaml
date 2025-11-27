@@ -1,0 +1,48 @@
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - ldap:
+      attributes:
+        email:
+          - mail
+        id:
+          - dn
+        name:
+          - cn
+        preferredUsername:
+          - uid
+      bindDN: 'uid=admin,cn=users,cn=accounts,dc=ocp4,dc=example,dc=com'
+      bindPassword:
+        name: ldap-secret
+      ca:
+        name: ca-config-map
+      insecure: false
+      url: >-
+        ldap://idm.ocp4.example.com/cn=users,cn=accounts,dc=ocp4,dc=example,dc=com?uid
+    mappingMethod: claim
+    name: Red Hat Identity Management
+    type: LDAP
+  - ldap:
+      attributes:
+        id:
+          - dn
+        email:
+          - mail
+        name:
+          - cn
+        preferredUsername:
+          - uid
+      bindDN: CHANGE_ME
+      bindPassword:
+        name: CHANGE_ME
+      ca:
+        name: CHANGE_ME
+      insecure: false
+      url: >-
+        ldaps://rhds.ocp4.example.com/dc=example,dc=com?uid
+    mappingMethod: claim
+    name: CHANGE_ME
+    type: LDAP

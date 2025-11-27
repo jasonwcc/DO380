@@ -1,0 +1,58 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-loader
+  labels:
+    app: db-loader
+stringData:
+  MARIADB_DATABASE: application
+  MARIADB_USER: appuser
+  MARIADB_PASSWORD: securepassword
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-loader
+  labels:
+    app: db-loader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-loader
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: db-loader
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - command: ["/bin/sh", "-c"]
+        args:
+        - |
+          sleep 10; until mysql -v -b -u ${MARIADB_USER} -p"${MARIADB_PASSWORD}" -h ${DB_HOST} ${MARIADB_DATABASE} -e "SHOW TABLES ;"; do echo waiting for mariadb; sleep 5; done;
+          while /bin/true; do
+          sleep 10
+          mysql -u ${MARIADB_USER} -p"${MARIADB_PASSWORD}" -h ${DB_HOST} ${MARIADB_DATABASE} -e "insert into application_logs(app, message) values ('db-loader', '`openssl rand -hex 20`');"
+          done
+        name: insert-data
+        image: registry.ocp4.example.com:8443/redhattraining/mariadb:10.5
+        env:
+        - name: DB_HOST
+          value: mariadb.database.svc
+        envFrom:
+        - secretRef:
+            name: db-loader
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources: {}
+      terminationGracePeriodSeconds: 3

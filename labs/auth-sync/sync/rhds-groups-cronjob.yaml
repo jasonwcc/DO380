@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rhds-group-sync
+  namespace: auth-rhds-sync
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: ldap-group-sync
+              image: "registry.ocp4.example.com:8443/openshift4/ose-cli:v4.12"
+              command:
+                - "/bin/sh"
+                - "-c"
+                - "oc adm groups sync --sync-config=/etc/config/rhds-sync.yaml --confirm"
+              volumeMounts:
+                - mountPath: "/etc/config"
+                  name: "ldap-sync-volume"
+                - mountPath: "/etc/secrets"
+                  name: "ldap-bind-password"
+          volumes:
+            - name: "ldap-sync-volume"
+              configMap:
+                name: "rhds-config"
+            - name: "ldap-bind-password"
+              secret:
+                secretName: CHANGE_ME
+          serviceAccountName: CHANGE_ME
+          serviceAccount: CHANGE_ME

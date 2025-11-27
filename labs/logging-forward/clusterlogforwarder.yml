@@ -1,0 +1,63 @@
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+    name: CHANGE_ME
+    namespace: openshift-logging
+spec:
+    inputs:
+    - name: critical-apps
+      application:
+        selector: CHANGE_ME
+
+    outputs:
+    - name: audit-syslog
+      type: syslog
+      url: CHANGE_ME
+      syslog:
+        msgID: CHANGE_ME
+        appName: ocp-lab
+        facility: user
+        procID: vector
+        rfc: RFC5424
+        severity: informational
+
+    - name: apps-syslog
+      type: syslog
+      url: CHANGE_ME
+      syslog:
+        msgID: CHANGE_ME
+        appName: ocp-lab
+        facility: user
+        procID: vector
+        rfc: RFC5424
+        severity: informational
+
+    - name: infra-syslog
+      type: syslog
+      url: CHANGE_ME
+      syslog:
+        msgID: CHANGE_ME
+        appName: ocp-lab
+        facility: user
+        procID: vector
+        rfc: RFC5424
+        severity: informational
+
+    pipelines:
+    - name: critical-apps-syslog
+      inputRefs:
+        - CHANGE_ME
+      outputRefs:
+        - apps-syslog
+
+    - name: infra-syslog
+      inputRefs:
+        - CHANGE_ME
+      outputRefs:
+        - infra-syslog
+
+    - name: audit-syslog
+      inputRefs:
+        - CHANGE_ME
+      outputRefs:
+        - audit-syslog

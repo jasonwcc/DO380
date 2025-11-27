@@ -1,0 +1,5 @@
+dn: cn=administrators,ou=people,dc=example,dc=com
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: administrators
+uniqueMember: uid=paydentomcheck,ou=people,dc=example,dc=com

@@ -1,0 +1,19 @@
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: CHANGE_ME
+  namespace: CHANGE_ME
+spec:
+  backupName: CHANGE_ME
+  namespaceMapping:
+    CHANGE_ME
+  hooks:
+    resources:
+    - name: mediawiki-unlock
+      labelSelector:
+        matchLabels:
+          CHANGE_ME
+      postHooks:
+      - exec:
+          container: CHANGE_ME
+          command: CHANGE_ME

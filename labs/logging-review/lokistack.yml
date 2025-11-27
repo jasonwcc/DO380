@@ -1,0 +1,24 @@
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: CHANGE_ME
+  namespace: CHANGE_ME
+spec:
+  limits:
+    global:
+      retention:
+        days: 30
+        streams:
+          - selector: '{kubernetes_namespace_name=CHANGE_ME}'
+            priority: 1
+            days: CHANGE_ME
+  size: 1x.demo
+  storage:
+    tls:
+      caName: openshift-service-ca.crt
+    secret:
+      name: CHANGE_ME
+      type: s3
+  storageClassName: ocs-external-storagecluster-ceph-rbd
+  tenants:
+    mode: CHANGE_ME

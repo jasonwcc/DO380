@@ -1,0 +1,8 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: CHANGE_ME
+  labels:
+    CHANGE_ME
+spec:
+  kernelType: realtime

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backup-inspector
+spec:
+  containers:
+  - image: registry.ocp4.example.com:8443/ubi9/ubi:9.0.0-1468
+    name: pvc-inspector
+    command: ["/bin/bash","-c"]
+    args:
+      - sleep infinity
+    volumeMounts:
+    - mountPath: /external-data
+      name: pvc-mount
+  volumes:
+  - name: pvc-mount
+    persistentVolumeClaim:
+      claimName: database-backup

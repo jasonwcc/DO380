@@ -1,0 +1,33 @@
+apiVersion: oadp.openshift.io/v1alpha1
+kind: DataProtectionApplication
+metadata:
+  name: CHANGE_ME
+  namespace: CHANGE_ME
+spec:
+  configuration:
+    nodeAgent:
+      enable: CHANGE_ME
+      uploaderType: kopia
+    velero:
+      defaultPlugins:
+        - aws
+        - openshift
+        - CHANGE_ME
+      defaultSnapshotMoveData: CHANGE_ME
+  backupLocations:
+    - velero:
+        config:
+          profile: "default"
+          region: "us-east-1"
+          s3Url: CHANGE_ME
+          s3ForcePathStyle: "true"
+          insecureSkipTLSVerify: "true"
+        provider: aws
+        default: true
+        credential:
+          key: cloud
+          name:  cloud-credentials
+        objectStorage:
+          bucket: CHANGE_ME
+          prefix: oadp
+          caCert: CHANGE_ME

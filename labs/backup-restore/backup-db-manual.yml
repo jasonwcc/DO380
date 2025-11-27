@@ -1,0 +1,15 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: CHANGEME
+  namespace: CHANGEME
+spec:
+  includedNamespaces:
+  - CHANGEME
+  orLabelSelectors:
+  - matchLabels:
+      CHANGEME
+  - matchLabels:
+      CHANGEME
+  includedResources:
+  - CHANGEME

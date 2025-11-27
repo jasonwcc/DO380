@@ -1,0 +1,15 @@
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogging
+metadata:
+  name: CHANGE_ME
+  namespace: CHANGE_ME
+spec:
+  managementState: Managed
+  logStore:
+    type: CHANGE_ME
+    lokistack:
+      name: CHANGE_ME
+  collection:
+    type: CHANGE_ME
+  visualization:
+    type: CHANGE_ME

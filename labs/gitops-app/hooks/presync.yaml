@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: backup-mariadb
+  annotations:
+    argocd.argoproj.io/hook: CHANGE_ME
+spec:
+  template:
+    metadata:
+      name: backup-mariadb
+    spec:
+      containers:
+      - name: backup-mariadb
+        image: "registry.ocp4.example.com:8443/redhattraining/mariadb:10.5"
+        resources: {}
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - mysqldump -v -u "root" -p"${MARIADB_ROOT_PASSWORD}" -h"${DB_HOST}" -P"${DB_PORT}" --quick --add-drop-database --routines ${MARIADB_DATABASE} | gzip > /database-backup/database-backup-files-$(date -d "today" +"%Y%m%d%H%M")
+        envFrom:
+        - secretRef:
+            name: mariadb
+        env:
+          - name: DB_PORT
+            value: "3306"
+          - name: DB_HOST
+            value: mariadb
+          - name: ALLOW_EMPTY_PASSWORD
+            value: "yes"
+        volumeMounts:
+          - name: database-backup
+            mountPath: /database-backup
+      volumes:
+        - name: database-backup
+          persistentVolumeClaim:
+            claimName: database-backup
+      restartPolicy: Never
+  backoffLimit: 2

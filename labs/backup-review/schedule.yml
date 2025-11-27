@@ -1,0 +1,40 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: CHANGE_ME
+  namespace: CHANGE_ME
+spec:
+  schedule: CHANGE_ME
+  paused: true
+  template:
+    includedNamespaces:
+    - CHANGE_ME
+    orLabelSelectors:
+    - matchLabels:
+        CHANGE_ME
+    - matchLabels:
+        CHANGE_ME
+    includedResources:
+    - CHANGE_ME
+    hooks:
+      resources:
+      - name: mediawiki-lock
+        labelSelector:
+          matchLabels:
+            CHANGE_ME
+        pre:
+        - exec:
+            container: CHANGE_ME
+            command: CHANGE_ME
+        post:
+        - exec:
+            container: CHANGE_ME
+            command: CHANGE_ME
+      - name: postgresql-checkpoint
+        labelSelector:
+          matchLabels:
+            CHANGE_ME
+        pre:
+        - exec:
+            container: CHANGE_ME
+            command: CHANGE_ME

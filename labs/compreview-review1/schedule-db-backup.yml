@@ -1,0 +1,55 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: CHANGE_ME
+  namespace: openshift-adp
+spec:
+  schedule: "0 7 * * 0"
+  paused: true
+  template:
+    ttl: 360h0m0s
+    includedNamespaces:
+    - CHANGE_ME
+    CHANGE_ME:
+    - CHANGE_ME
+    includedResources:
+    - deployment
+    - route
+    - service
+    - pvc
+    - persistentvolume
+    - secret
+    - service
+    - CHANGE_ME
+    - CHANGE_ME
+    hooks:
+      resources:
+      - name: mariadb-readonly
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: mariadb
+        pre:
+        - exec:
+            container: mariadb
+            command:
+            - /bin/bash
+            - -c
+            - |
+              mariadb -u "root" \
+              -p"${MARIADB_ROOT_PASSWORD}" \
+              ${MARIADB_DATABASE} -e \
+              "set global read_only=1; \
+              BACKUP STAGE START; \
+              BACKUP STAGE BLOCK_COMMIT;";
+              sync;
+        post:
+        - exec:
+            container: mariadb
+            command:
+            - /bin/bash
+            - -c
+            - |
+              mariadb -u "root" \
+              -p"${MARIADB_ROOT_PASSWORD}" \
+              ${MARIADB_DATABASE} -e \
+              "set global read_only=0;";

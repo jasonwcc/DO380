@@ -1,0 +1,8 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: CHANGE_ME
+  namespace: openshift-adp
+spec:
+  includedNamespaces:
+  - CHANGE_ME

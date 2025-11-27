@@ -1,0 +1,16 @@
+dn: uid=paydentomcheck,ou=people,dc=example,dc=com
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Payden Tomcheck
+uid: paydentomcheck
+uidNumber: 10001
+gidNumber: 101
+homeDirectory: /home/paydentomcheck
+loginShell: /bin/bash
+gecos: paydentomcheck
+userPassword: {SSHA}Zml1guZ2Kj9Q3WJdiEVuzi3Dh+971OxX
+shadowLastChange: 0
+shadowMax: 0
+shadowWarning: 0

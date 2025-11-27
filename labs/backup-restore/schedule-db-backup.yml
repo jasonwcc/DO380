@@ -1,0 +1,36 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: CHANGEME
+  namespace: CHANGEME
+spec:
+  schedule: CHANGEME
+  paused: true
+  template:
+    ttl: CHANGEME
+    includedNamespaces:
+    - CHANGEME
+    orLabelSelectors:
+    - matchLabels:
+        CHANGEME
+    - matchLabels:
+        CHANGEME
+    includedResources:
+    - CHANGEME
+    hooks:
+      resources:
+      - name: mariadb-readonly
+        pre:
+        - exec:
+            container: mariadb
+            command:
+            - /bin/bash
+            - -c
+            - CHANGEME
+        post:
+        - exec:
+            container: mariadb
+            command:
+            - /bin/bash
+            - -c
+            - CHANGEME

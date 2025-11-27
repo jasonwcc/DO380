@@ -1,0 +1,56 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: CHANGE_ME
+  smtp_hello: localhost
+  smtp_auth_username: CHANGE_ME
+  smtp_auth_password: CHANGE_ME
+  smtp_from: CHANGE_ME
+  smtp_require_tls: CHANGE_ME
+inhibit_rules:
+- equal:
+  - namespace
+  - alertname
+  source_matchers:
+  - severity = critical
+  target_matchers:
+  - severity =~ warning|info
+- equal:
+  - namespace
+  - alertname
+  source_matchers:
+  - severity = warning
+  target_matchers:
+  - severity = info
+- equal:
+  - namespace
+  source_matchers:
+  - alertname = InfoInhibitor
+  target_matchers:
+  - severity = info
+receivers:
+- name: Default
+- name: Watchdog
+- name: Critical
+- name: 'null'
+- name: cpu-overcommit
+  email_configs:
+    - to: ocp-admins@example.com
+route:
+  group_by:
+  - namespace
+  group_interval: CHANGE_ME
+  group_wait: CHANGE_ME
+  receiver: Default
+  repeat_interval: CHANGE_ME
+  routes:
+  - matchers:
+    - alertname = Watchdog
+    receiver: Watchdog
+  - matchers:
+    - alertname = InfoInhibitor
+    receiver: 'null'
+  - matchers:
+    - severity = critical
+    receiver: Critical
+    continue: true
+  - CHANGE_ME

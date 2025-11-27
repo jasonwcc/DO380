@@ -1,0 +1,9 @@
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogging
+metadata:
+  name: CHANGE_ME
+  namespace: openshift-logging
+spec:
+  managementState: Managed
+  collection:
+    CHANGE_ME
