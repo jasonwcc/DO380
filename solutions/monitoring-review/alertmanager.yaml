@@ -1,0 +1,58 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 192.168.50.254:25
+  smtp_hello: localhost
+  smtp_auth_username: smtp_training
+  smtp_auth_password: Red_H4T@!
+  smtp_from: alerts@ocp4.example.com
+  smtp_require_tls: false
+inhibit_rules:
+- equal:
+  - namespace
+  - alertname
+  source_matchers:
+  - severity = critical
+  target_matchers:
+  - severity =~ warning|info
+- equal:
+  - namespace
+  - alertname
+  source_matchers:
+  - severity = warning
+  target_matchers:
+  - severity = info
+- equal:
+  - namespace
+  source_matchers:
+  - alertname = InfoInhibitor
+  target_matchers:
+  - severity = info
+receivers:
+- name: Default
+- name: Watchdog
+- name: Critical
+- name: 'null'
+- name: cpu-overcommit
+  email_configs:
+    - to: ocp-admins@example.com
+route:
+  group_by:
+  - namespace
+  group_interval: 1m
+  group_wait: 1m
+  receiver: Default
+  repeat_interval: 1m
+  routes:
+  - matchers:
+    - alertname = Watchdog
+    receiver: Watchdog
+  - matchers:
+    - alertname = InfoInhibitor
+    receiver: 'null'
+  - matchers:
+    - severity = critical
+    receiver: Critical
+    continue: true
+  - matchers:
+    - alertname = NodeCPUOvercommit
+    receiver: cpu-overcommit

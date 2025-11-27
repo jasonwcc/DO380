@@ -1,0 +1,40 @@
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  inputs:
+    - name: production-apps
+      application:
+        selector:
+          matchLabels:
+            environment: production
+    - name: ci
+      application:
+        namespaces:
+        - build-ci
+  outputs:
+    - name: audit-syslog
+      type: syslog
+      url: tcp://utility.lab.example.com:514
+      syslog:
+        msgID: audit
+        appName: ocp-lab
+        facility: user
+        procID: vector
+        rfc: RFC5424
+        severity: informational
+  pipelines:
+    - name: to-syslog
+      inputRefs:
+        - audit
+      outputRefs:
+        - audit-syslog
+    - name: to-loki
+      inputRefs:
+        - infrastructure
+        - ci
+        - production-apps
+      outputRefs:
+        - default
