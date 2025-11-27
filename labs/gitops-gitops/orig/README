@@ -1,3 +1,0 @@
-These files exist to allow easy restoring the default classroom authenticatin settings.
-Just run, after login in as kubeadmin or another cluster administrator user:
-$ oc apply -k .

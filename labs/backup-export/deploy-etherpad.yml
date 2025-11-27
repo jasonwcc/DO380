@@ -1,0 +1,134 @@
+---
+# Source: etherpad/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: etherpad
+  labels:
+    app.kubernetes.io/name: etherpad
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "1Gi"
+  storageClassName: "ocs-external-storagecluster-ceph-rbd"
+---
+# Source: etherpad/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: etherpad
+  labels:
+    app.kubernetes.io/name: etherpad
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9001
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: etherpad
+---
+# Source: etherpad/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etherpad
+  labels:
+    app.kubernetes.io/name: etherpad
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: etherpad
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: etherpad
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      - args:
+        - |
+          if [ -f var/dirty.db ]; then
+            grep -aE "^{" var/dirty.db | grep -av sessionstorage > /tmp/dirty.db
+            mv /tmp/dirty.db var/dirty.db
+          fi
+        command:
+        - /bin/bash
+        - -c
+        image: image-registry.openshift-image-registry.svc:5000/production/etherpad:1.8.18
+        name: clean
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /opt/etherpad-lite/var
+          name: etherpad-data
+      containers:
+        - env:
+          - name: TITLE
+            value: DO380 - production etherpad
+          - name: DEFAULT_PAD_TEXT
+            value: Add some content and write your ideas
+          - name: SUPPRESS_ERRORS_IN_PAD_TEXT
+            value: "true"
+          - name: EXPOSE_VERSION
+            value: "true"
+          name: etherpad
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+          image: "image-registry.openshift-image-registry.svc:5000/production/etherpad:1.8.18"
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9001
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {}
+          volumeMounts:
+            - name: etherpad-data
+              mountPath: /opt/etherpad-lite/var
+      volumes:
+      - name: etherpad-data
+        persistentVolumeClaim:
+          claimName: etherpad
+---
+# Source: etherpad/templates/route.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/host.generated: "true"
+  name: etherpad
+  labels:
+    app.kubernetes.io/name: etherpad
+spec:
+  host:
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: etherpad
+    weight: 100
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
