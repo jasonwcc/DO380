@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: project-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: project-ns
+  template:
+    metadata:
+      labels:
+        app: project-ns
+    spec:
+      containers:
+      - image: registry.ocp4.example.com:8443/ubi9/ubi:latest
+        imagePullPolicy: Always
+        name: project-ns
+        command: ["/bin/sh","-c"]
+        args: ["sleep infinity"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+              - ALL

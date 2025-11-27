@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-affinity
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: review-affinity
+  template:
+    metadata:
+      labels:
+        app: review-affinity
+    spec:
+      containers:
+      - image: registry.ocp4.example.com:8443/rhel9/mysql-80:1-237
+        imagePullPolicy: Always
+        name: review-affinity
+        env:
+        - name: MYSQL_USER
+          value: test_user
+        - name: MYSQL_PASSWORD
+          value: test_password
+        - name: MYSQL_DATABASE
+          value: test_database
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+              - ALL
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - review-ns
+            topologyKey: kubernetes.io/hostname
+

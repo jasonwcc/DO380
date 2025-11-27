@@ -1,0 +1,12 @@
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  minAvailable: 80%
+  selector:
+    matchLabels:
+      app: nginx

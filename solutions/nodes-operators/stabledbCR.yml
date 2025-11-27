@@ -1,0 +1,19 @@
+apiVersion: tuned.openshift.io/v1
+kind: Tuned
+metadata:
+  name: stabledb-tuning
+  namespace: openshift-cluster-node-tuning-operator
+spec:
+  profile:
+  - name: stabledb-tuning
+    data: |
+      [main]
+      summary=Worker optimization disabling transparent_hugepages.
+      [vm]
+      transparent_hugepage=never
+
+  recommend:
+  - match:
+    - label: node-role.kubernetes.io/stabledb
+    priority: 30
+    profile: stabledb-tuning

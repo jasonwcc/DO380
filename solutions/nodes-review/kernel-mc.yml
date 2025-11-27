@@ -1,0 +1,8 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: 99-kernel-realtime
+  labels:
+    machineconfiguration.openshift.io/role: "kernel-rt"
+spec:
+  kernelType: realtime

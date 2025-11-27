@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-toleration
+spec:
+  replicas: 8
+  selector:
+    matchLabels:
+      app: review-toleration
+  template:
+    metadata:
+      labels:
+        app: review-toleration
+    spec:
+      containers:
+      - image: registry.ocp4.example.com:8443/ubi9/ubi:9.0.0-1468
+        imagePullPolicy: Always
+        name: review-toleration
+        command: ["/bin/sh","-c"]
+        args: ["sleep infinity"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+              - ALL
+      tolerations:
+      - key: "application"
+        value: "ml"
+        operator: "Equal"
+        effect: "NoSchedule"

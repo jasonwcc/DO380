@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-ns
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: review-ns
+  template:
+    metadata:
+      labels:
+        app: review-ns
+    spec:
+      containers:
+      - image: registry.ocp4.example.com:8443/redhattraining/hello-world-nginx:v1.0
+        imagePullPolicy: Always
+        name: review-ns
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+              - ALL
+      nodeSelector:
+        disk: nvme

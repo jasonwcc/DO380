@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: project-podsel
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: project-podsel
+  template:
+    metadata:
+      labels:
+        app: project-podsel
+    spec:
+      containers:
+      - image: registry.ocp4.example.com:8443/ubi9/ubi:latest
+        imagePullPolicy: Always
+        name: project-podsel
+        command: ["/bin/sh","-c"]
+        args: ["sleep infinity"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+              - ALL
+      nodeSelector:
+        rack: "1"

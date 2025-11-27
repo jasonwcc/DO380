@@ -1,0 +1,19 @@
+apiVersion: tuned.openshift.io/v1
+kind: Tuned
+metadata:
+  name: kernel-numabal
+  namespace: openshift-cluster-node-tuning-operator
+spec:
+  profile:
+  - data: |
+      [main]
+      summary=Custom NUMA balancing profile
+      include=openshift-node
+      [sysctl]
+      kernel.numa_balancing=1
+    name: kernel-numabal
+  recommend:
+  - machineConfigLabels:
+      machineconfiguration.openshift.io/role: "numa-bal"
+    priority: 30
+    profile: kernel-numabal
