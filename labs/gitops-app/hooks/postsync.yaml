@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: test-etherpad
+  annotations:
+    argocd.argoproj.io/hook: CHANGE_ME
+spec:
+  template:
+    metadata:
+      name: test-etherpad
+    spec:
+      containers:
+      - name: test-etherpad
+        image: "registry.ocp4.example.com:8443/ubi9/ubi:9.0.0-1468"
+        command: ["curl"]
+        args:
+          - -k
+          - -s
+          - https://etherpad-etherpad-devs.apps.ocp4.example.com
+      restartPolicy: Never
+  backoffLimit: 2
