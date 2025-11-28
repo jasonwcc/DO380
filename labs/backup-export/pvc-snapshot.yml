@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: etherpad-snapshot
+  labels:
+    app: etherpad-snapshot
+spec:
+  storageClassName: CHANGE_ME
+  accessModes:
+  - ReadWriteOnce
+  dataSource:
+    apiGroup: CHANGE_ME
+    kind: CHANGE_ME
+    name: CHANGE_ME
+  resources:
+    requests:
+      storage: 1Gi
