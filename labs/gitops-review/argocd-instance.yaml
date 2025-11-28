@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1beta1
 kind: ArgoCD
 metadata:
   name: argocd
-  namespace: gitops-app
+  namespace: gitops-review
 spec:
   server:
     resources:
@@ -14,8 +14,7 @@ spec:
         memory: 128Mi
     route:
       enabled: true
-      tls:
-        termination: reencrypt
+      CHANGE_ME:
   sso:
     dex:
       resources:
@@ -30,15 +29,8 @@ spec:
   rbac:
     defaultPolicy: ''
     policy: |
-      g, system:cluster-admins, role:admin
-      g, project-devs, role:project-devs
-      p, role:project-devs, applications, get, */*, allow
-      p, role:project-devs, projects, get, *, allow
-      p, role:project-devs, clusters, get, *, allow
-      g, project-admins, role:project-admins
-      p, role:project-admins, applications, *, */*, allow
-      p, role:project-admins, projects, get, *, allow
-      p, role:project-admins, clusters, get, *, allow
+      g, ocpadmins, role:admin
+      CHANGE_ME
     scopes: '[groups]'
   repo:
     resources:
@@ -48,14 +40,7 @@ spec:
       requests:
         cpu: 250m
         memory: 256Mi
-    volumeMounts:
-    - mountPath: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-      name: cluster-root-ca-bundle
-      subPath: ca-bundle.crt
-    volumes:
-    - configMap:
-        name: cluster-root-ca-bundle
-      name: cluster-root-ca-bundle
+    CHANGE_ME:
   ha:
     resources:
       limits:
