@@ -1,0 +1,60 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: etherpad-backup
+  namespace: openshift-adp
+spec:
+  schedule: "0 7 * * 0"
+  paused: true
+  template:
+    ttl: 360h0m0s
+    includedNamespaces:
+    - compreview-review1
+    orLabelSelector:
+    - matchLabels:
+        app.kubernetes.io/name: etherpad
+    - matchLabels:
+        app.kubernetes.io/name: mariadb
+    - matchLabels:
+        kubernetes.io/metadata.name: compreview-review1
+    includedResources:
+    - deployment
+    - route
+    - service
+    - pvc
+    - persistentvolume
+    - secret
+    - service
+    - namespace
+    - pods
+    hooks:
+      resources:
+      - name: mariadb-readonly
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: mariadb
+        pre:
+        - exec:
+            container: mariadb
+            command:
+            - /bin/bash
+            - -c
+            - |
+              mariadb -u "root" \
+              -p"${MARIADB_ROOT_PASSWORD}" \
+              ${MARIADB_DATABASE} -e \
+              "set global read_only=1; \
+              BACKUP STAGE START; \
+              BACKUP STAGE BLOCK_COMMIT;";
+              sync;
+        post:
+        - exec:
+            container: mariadb
+            command:
+            - /bin/bash
+            - -c
+            - |
+              mariadb -u "root" \
+              -p"${MARIADB_ROOT_PASSWORD}" \
+              ${MARIADB_DATABASE} -e \
+              "set global read_only=0;";
