@@ -25,6 +25,12 @@ spec:
     mappingMethod: claim
     name: Red Hat Identity Management
     type: LDAP
+  - htpasswd:
+      fileData:
+        name: htpasswd-secret
+    mappingMethod: add
+    name: htpasswd_provider
+    type: HTPasswd
   - openID:
       claims:
         email:
@@ -35,12 +41,12 @@ spec:
           - preferred_username
         groups:
           - groups
-      clientID: CHANGE_ME
+      clientID: ocp_rhsso
       clientSecret:
-        name: CHANGE_ME
+        name: rhsso-oidc-client-secret
       extraScopes: []
       issuer: >-
         https://sso.ocp4.example.com:8080/auth/realms/external_providers
-    mappingMethod: claim
-    name: CHANGE_ME
+    mappingMethod: add
+    name: RHSSO_OIDC
     type: OpenID
